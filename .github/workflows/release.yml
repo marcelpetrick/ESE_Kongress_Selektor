@@ -92,3 +92,10 @@ jobs:
               --title "$RELEASE_TAG" \
               --generate-notes
           fi
+
+          # Keep reruns idempotent while guaranteeing a public stable release,
+          # even if the existing release was previously a draft or prerelease.
+          gh release edit "$RELEASE_TAG" \
+            --draft=false \
+            --prerelease=false \
+            --latest

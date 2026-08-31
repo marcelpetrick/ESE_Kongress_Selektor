@@ -1,6 +1,7 @@
 # ESE Kongress 2026 – Programm-Selektor
 
 [![CI](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/ci.yml)
+[![Release](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/release.yml/badge.svg)](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/release.yml)
 [![License: GPLv3 or later](https://img.shields.io/badge/license-GPLv3%20or%20later-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey.svg)](#continuous-integration)
@@ -124,9 +125,9 @@ Locally, `python localPipeline.py --browser` adds a headless Chromium render and
 The [release workflow](.github/workflows/release.yml) runs the quality gate
 again for an existing `vMAJOR.MINOR.PATCH` tag. It then creates a clean source
 ZIP from tracked files, generates `SHA256SUMS.txt`, and publishes both in an
-idempotent GitHub Release with generated notes. It can be triggered by pushing
-the tag or manually for an existing tag; it never packages downloaded congress
-content or generated viewer data.
+idempotent, public, non-prerelease GitHub Release with generated notes. It can
+be triggered by pushing the tag or manually for an existing tag; it never
+packages downloaded congress content or generated viewer data.
 
 ## Dependencies
 

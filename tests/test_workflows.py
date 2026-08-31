@@ -39,6 +39,10 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn(r"^v[0-9]+\.[0-9]+\.[0-9]+$", self.release)
         self.assertIn("--verify-tag", self.release)
 
+    def test_release_is_always_published_as_stable(self):
+        self.assertIn("--draft=false", self.release)
+        self.assertIn("--prerelease=false", self.release)
+
 
 if __name__ == "__main__":
     unittest.main()
