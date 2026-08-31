@@ -1,0 +1,124 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Marcel Petrick <mail@marcelpetrick.it>
+#
+# CI runs the very same gate that is run locally: `python localPipeline.py`.
+# There is no second list of checks that could drift away from the first one.
+#
+# Nothing in the default jobs touches ese-kongress.de: the gate builds from the
+# synthetic fixtures in tests/fixtures/raw, and the bootstrap job seeds those
+# fixtures into data/raw and runs run.py with --skip-crawl. The live site is
+# only contacted by the `canary` job, which runs weekly and on demand.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: "17 5 * * 1"   # Mondays, for the live-site canary only
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    # 3.10 is the floor (requests 2.34.2 declares Requires-Python >=3.10),
+    # 3.14 is what the tool is developed on, Windows proves the paths.
+    name: Gate (${{ matrix.os }}, Python ${{ matrix.python }})
+    if: github.event_name != 'schedule'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: windows-latest
+            python: "3.14"
+          - os: macos-latest
+            python: "3.14"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install the pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Report the toolchain
+        run: |
+          python --version
+          python -m pip show beautifulsoup4 requests
+
+      - name: Run the local pipeline
+        run: python localPipeline.py
+
+  bootstrap:
+    # Proves the thing the README promises: one command provisions a venv,
+    # installs the dependencies and produces a viewer -- on both platforms.
+    name: Bootstrap (${{ matrix.os }})
+    if: github.event_name != 'schedule'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.14"
+
+      - name: Seed data/raw with the offline fixtures
+        run: python -c "import pathlib, shutil; dst = pathlib.Path('data/raw'); dst.mkdir(parents=True, exist_ok=True); [shutil.copy(src, dst) for src in pathlib.Path('tests/fixtures/raw').glob('*.html')]"
+
+      - name: Bootstrap without touching the network
+        run: python run.py --skip-crawl --no-open
+
+      - name: The viewer payload has to exist and be loadable
+        run: python -c "import json, pathlib, sys; text = pathlib.Path('web/data.js').read_text(encoding='utf-8'); body = text.split('window.CONGRESS_DATA = ', 1)[1].rstrip().rstrip(';'); data = json.loads(body); print(len(data['events']), 'events'); sys.exit(0 if data['events'] else 'no events in web/data.js')"
+
+      - name: --clean restores the code-only tree
+        run: |
+          python run.py --clean
+          python -c "import pathlib, sys; sys.exit('data/ survived --clean' if pathlib.Path('data').exists() else 0)"
+
+  canary:
+    # The one job that talks to the congress site: it fetches a single page and
+    # checks it still carries the markup the parser relies on. Weekly, or on
+    # demand -- never on a push, so a change on their side cannot block a PR.
+    name: Live site canary
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.14"
+
+      - name: Install the pinned dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run the pipeline including the live canary
+        run: python localPipeline.py --network

@@ -4,13 +4,15 @@
 # Thin wrapper around run.py -- on Windows just call `py run.py` directly.
 PY ?= python3
 
-.PHONY: help run serve refresh report crawl parse clean
+.PHONY: help run serve refresh report check test crawl parse clean
 
 help:
 	@echo "make run       bootstrap everything and open the viewer (this is the one)"
 	@echo "make serve     same, but on http://localhost:8765 instead of file://"
 	@echo "make refresh   re-download the schedule, then rebuild and open"
 	@echo "make report    re-run the highlight rules and list what was tagged"
+	@echo "make check     run the same complete offline gate as CI"
+	@echo "make test      run the unit test suite"
 	@echo "make clean     remove .venv and every downloaded or generated file"
 	@echo
 	@echo "low level (need requests + beautifulsoup4 in \$$PY):"
@@ -27,6 +29,12 @@ refresh:
 
 report:
 	$(PY) crawler/classify.py --report
+
+check:
+	$(PY) localPipeline.py
+
+test:
+	$(PY) -m unittest discover -s tests -t tests -v
 
 crawl:
 	$(PY) crawler/crawl.py
