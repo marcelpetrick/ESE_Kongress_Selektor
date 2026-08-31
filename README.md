@@ -5,7 +5,11 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey.svg)](#continuous-integration)
 
-By Marcel Petrick <mail@marcelpetrick.it>.
+**Author: Marcel Petrick <mail@marcelpetrick.it>**
+
+**License: GPLv3 or later. See `LICENSE`.**
+
+**Note: project is generated with AI.**
 
 A small, unofficial tool for browsing the [Embedded Software Engineering
 Kongress 2026](https://ese-kongress.de/frontend/index.php?page_id=53095&v=TimeTable)
