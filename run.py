@@ -11,7 +11,7 @@ The repo ships code only. This script provisions everything else:
     4. open the viewer                                      (file:// or --serve)
 
 It uses nothing but the Python standard library, so it runs on a bare Python
-3.9+ install on Linux, macOS and Windows:
+3.10+ install on Linux, macOS and Windows:
 
     python3 run.py                 # Linux / macOS
     py run.py                      # Windows
@@ -19,6 +19,7 @@ It uses nothing but the Python standard library, so it runs on a bare Python
 Useful flags:
 
     --refresh        re-download every page instead of using data/raw
+    --skip-crawl     build from the copy in data/raw without touching the network
     --serve [PORT]   serve on http://localhost:PORT instead of opening file://
     --no-open        build only, do not start a browser
     --no-venv        use the current interpreter (requests + bs4 must be there)
@@ -46,7 +47,8 @@ WEB_DIR = ROOT / "web"
 WEB_DATA = WEB_DIR / "data.js"
 VIEWER = WEB_DIR / "index.html"
 
-IS_WINDOWS = os.name == "nt"
+# requests 2.34.2 declares Requires-Python >=3.10, so that is the real floor.
+MIN_PYTHON = (3, 10)
 
 
 def announce(message: str) -> None:
@@ -55,7 +57,7 @@ def announce(message: str) -> None:
 
 def venv_python() -> Path:
     """Interpreter inside .venv -- Windows puts it in Scripts\\, POSIX in bin/."""
-    if IS_WINDOWS:
+    if os.name == "nt":
         return VENV_DIR / "Scripts" / "python.exe"
     return VENV_DIR / "bin" / "python"
 
@@ -117,6 +119,13 @@ def check_current_interpreter() -> Path:
 
 def crawl(python: Path, args) -> None:
     have_copy = RAW_DIR.exists() and any(RAW_DIR.glob("*.html"))
+
+    if args.skip_crawl:
+        if not have_copy:
+            raise SystemExit(f"--skip-crawl needs an existing copy in {RAW_DIR}")
+        announce("skipping the download, building from the copy in data/raw/")
+        return
+
     announce("refreshing the local copy of the schedule" if args.refresh
              else "downloading the schedule" if not have_copy
              else "checking the local copy of the schedule")
@@ -192,6 +201,8 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--refresh", action="store_true",
                         help="re-download every page instead of reusing data/raw/")
+    parser.add_argument("--skip-crawl", action="store_true",
+                        help="build from data/raw/ without any network access")
     parser.add_argument("--serve", nargs="?", type=int, const=8765, metavar="PORT",
                         help="serve the viewer on http://localhost:PORT (default 8765)")
     parser.add_argument("--no-open", action="store_true", help="build only, do not open a browser")
@@ -207,13 +218,17 @@ def main() -> int:
                         help="show every cached page during the crawl")
     args = parser.parse_args()
 
+    if args.refresh and args.skip_crawl:
+        raise SystemExit("--refresh and --skip-crawl contradict each other")
+
     if args.clean:
         announce("removing generated files")
         clean()
         return 0
 
-    if sys.version_info < (3, 9):
-        raise SystemExit(f"Python 3.9+ required, this is {sys.version.split()[0]}")
+    if sys.version_info < MIN_PYTHON:
+        wanted = ".".join(str(part) for part in MIN_PYTHON)
+        raise SystemExit(f"Python {wanted}+ required, this is {sys.version.split()[0]}")
 
     python = check_current_interpreter() if args.no_venv else ensure_venv()
     crawl(python, args)
