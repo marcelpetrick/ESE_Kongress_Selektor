@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!-- Synthetic fixture. Reproduces the *structure* of a Converia 9.4 TimeTable
+     page (class names, nesting, whitespace habits) with invented content, so
+     the parser can be tested without redistributing congress material. -->
+<html id="planner" class="no-js de" lang="de" data-converia-version="9.4">
+<head><meta charset="utf-8"><title>Konferenzzeitplan</title></head>
+<body class="frontend frontend-schedule">
+
+<div class="schedule_wrapper calendar_view">
+	<div class="header">
+		<div class="view_navigation">
+			<div class="timeline-wrapper timeline-days-2">
+				<a class="button button-schedule button-timeline  active"
+				   title="30.11.2026"
+				   href="/index.php?page_id=53095&amp;v=TimeTable&amp;do=0&amp;day=9001">
+					Mo		</a>
+				<a class="button button-schedule button-timeline "
+				   title="01.12.2026"
+				   href="/index.php?page_id=53095&amp;v=TimeTable&amp;do=0&amp;day=9002">
+					Di		</a>
+			</div>
+
+			<div class="button-group-stepper">
+				<div class="stepper-label">
+					30.11.2026	</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="view_filter">
+		<form name="topicselection" method="POST" action="/frontend/index.php">
+			<div class="topic_column first_column">
+				<div class="topic_wrapper">
+					<div class="checkbox-wrapper">
+						<label class="checkbox" for="topic_9101">
+							<div class="topic_color" id="color_9101" style="background-color:#008CFF"></div>
+							<input type="checkbox" class="topic_checkbox" id="topic_9101" name="topics[9101]" >
+							Fixture-Thema Eins
+						</label>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<div id="print_me">
+		<div id="scrolled_viewport" class="content_wrapper caldendar_content">
+			<div class="time_grid">
+				<div id="room_nav" class="room_nav" style="width: 935px;">
+					<div class="room_nav_ele">
+						<div class="room_headline" title="Fixture Saal">
+							Fixture Saal						</div>
+					</div>
+					<div class="room_nav_ele">
+						<div class="room_headline" title="Fixture Raum">
+							Fixture Raum						</div>
+					</div>
+				</div>
+
+				<div class="column_wrapper" style="width: 935px;">
+					<div class="room" id="room_9501" style="height:1006px;">
+						<a href="/index.php?page_id=53095&amp;v=List&amp;do=15&amp;day=9001&amp;ses=5001#anker_session_5001"
+						   class="event event_type_3 topic_9101"
+						   id="x_eventposition_5001"
+						   style="border-left: 10px solid #008CFF; top: 30px; height: 100px;">
+							<span class="fe-icon fe-icon-star" data-favorite-setter="true" data-ident="2_5001"></span>
+							<span class="event_content">
+								<span class="headline hyphenate">
+									Fixture-Session mit Agenten								</span>
+								<br>
+								<span><b>09:00                    - 10:00 Uhr</b></span>
+								<br>
+								<span><b>Thema:</b> Fixture-Thema Eins</span>
+							</span>
+						</a>
+
+						<a href="/index.php?page_id=53095&amp;v=List&amp;do=16&amp;day=9001&amp;ev=7001#anker_generalevent_7001"
+						   class="event event_type_1"
+						   id="x_eventposition_7001"
+						   style="border-left: 10px solid ; top: 140px; height: 40px;">
+							<span class="fe-icon fe-icon-star" data-favorite-setter="true" data-ident="1_7001"></span>
+							<span class="event_content">
+								<span class="headline hyphenate">
+									Fixture-Pause								</span>
+								<br>
+								<span><b>10:00                    - 10:30 Uhr</b></span>
+							</span>
+						</a>
+					</div>
+
+					<div class="room" id="room_9502" style="height:1006px;">
+						<a href="/index.php?page_id=53095&amp;v=List&amp;do=15&amp;day=9001&amp;ses=5002#anker_session_5002"
+						   class="event event_type_3 topic_9102"
+						   id="x_eventposition_5002"
+						   style="border-left: 10px solid #0F8A6A; top: 30px; height: 100px;">
+							<span class="fe-icon fe-icon-star" data-favorite-setter="true" data-ident="2_5002"></span>
+							<span class="event_content">
+								<span class="headline hyphenate">
+									Fixture-Session über Teams								</span>
+								<br>
+								<span><b>09:00                    - 10:00 Uhr</b></span>
+							</span>
+						</a>
+
+						<a href="/index.php?page_id=53095&amp;v=List&amp;do=16&amp;day=9001&amp;ev=7001#anker_generalevent_7001"
+						   class="event event_type_1"
+						   id="x_eventposition_7001"
+						   style="border-left: 10px solid ; top: 140px; height: 40px;">
+							<span class="fe-icon fe-icon-star" data-favorite-setter="true" data-ident="1_7001"></span>
+							<span class="event_content">
+								<span class="headline hyphenate">
+									Fixture-Pause								</span>
+								<br>
+								<span><b>10:00                    - 10:30 Uhr</b></span>
+							</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
