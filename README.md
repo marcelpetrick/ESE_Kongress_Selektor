@@ -1,143 +1,147 @@
 # ESE Kongress 2026 – Programm-Selektor
 
-A small tool for browsing the [Embedded Software Engineering Kongress
-2026](https://ese-kongress.de/frontend/index.php?page_id=53095&v=TimeTable)
-programme more comfortably than the conference website allows: every abstract on
-mouseover instead of a click and a page load, a mark for the talks you want to
-attend, and a highlight for the sessions about **project management**, **team
-management / leadership**, **agentic AI usage** and **scaling of projects and
-teams**.
+[![CI](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/marcelpetrick/ESE_Kongress_Selektor/actions/workflows/ci.yml)
+[![License: GPLv3 or later](https://img.shields.io/badge/license-GPLv3%20or%20later-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey.svg)](#continuous-integration)
 
-The repository contains code only. Everything else — the Python packages, the
-schedule data, the viewer payload — is fetched and built on first start.
+By Marcel Petrick <mail@marcelpetrick.it>.
+
+A small, unofficial tool for browsing the [Embedded Software Engineering
+Kongress 2026](https://ese-kongress.de/frontend/index.php?page_id=53095&v=TimeTable)
+programme more comfortably. It adds instant abstracts, persistent marks,
+search, exports, and highlights for **project management**, **team leadership**,
+**agentic AI**, and **scaling**. It is only a browsing aid; it is not affiliated
+with the congress organisers.
+
+![Calendar view with an event detail popup](media/calendar_view.png)
 
 ## Run it
 
 ```bash
-python3 run.py          # Linux, macOS
+python3 run.py          # Linux and macOS
 py run.py               # Windows
 ```
 
-That is the whole setup. `run.py` needs nothing but a Python 3.9+ installation
-and does the rest itself:
-
-1. creates `.venv/` and installs `requirements.txt` into it,
-2. downloads the schedule into `data/raw/` (~140 pages, one polite request at a
-   time, roughly two minutes),
-3. builds `data/congress.json` and `web/data.js`,
-4. opens the viewer in your browser.
-
-A second run does no network I/O at all and is done in about two seconds.
+That is the complete setup. Starting with only Python 3.10 or newer, `run.py`
+creates `.venv/`, installs the two pinned packages, downloads the programme,
+builds the local viewer, and opens it. The first download makes roughly 140
+polite requests and takes about two minutes; later runs reuse the local copy and
+usually finish in a few seconds.
 
 | flag | effect |
 | --- | --- |
-| `--refresh` | re-download every page instead of reusing `data/raw/` |
-| `--serve [PORT]` | serve on `http://localhost:8765` instead of opening `file://` |
-| `--no-open` | build only |
-| `--no-venv` | use the current interpreter (needs `requests` and `beautifulsoup4`) |
-| `--clean` | delete `.venv/`, `data/` and `web/data.js` — back to code only |
-| `-v` | list cached pages during the crawl too |
+| `--refresh` | download every page again instead of reusing `data/raw/` |
+| `--skip-crawl` | rebuild from an existing `data/raw/` without network access |
+| `--serve [PORT]` | serve at `http://localhost:8765` (or the supplied port) |
+| `--no-open` | build without opening a browser |
+| `--no-venv` | use the current interpreter; `requests` and `bs4` must be installed |
+| `--clean` | remove `.venv/`, `data/`, and `web/data.js` |
+| `-v`, `--verbose` | also list pages reused from the crawl cache |
 
-`make run`, `make serve`, `make refresh`, `make report`, `make clean` wrap the
-same commands on systems that have `make`.
+`--refresh` and `--skip-crawl` are intentionally mutually exclusive. On a
+system with Make, `make run`, `make serve`, `make refresh`, `make report`,
+`make check`, `make test`, and `make clean` wrap the same commands.
 
 ### Windows
 
-Works the same way, and needed almost no extra effort: `run.py` picks
-`.venv\Scripts\python.exe` instead of `.venv/bin/python`, and forces `utf-8` on
-stdout so the umlauts in the programme cannot abort a run in a legacy code page
-console. Install Python from python.org (tick *Add python.exe to PATH*), then
-`py run.py`. No `make`, no shell, no admin rights required.
+Install Python from python.org and select *Add python.exe to PATH*, then run
+`py run.py`. No Make, shell, or administrator rights are needed. The bootstrap
+uses `.venv\Scripts\python.exe` and forces UTF-8 console output so programme
+umlauts also work with legacy Windows code pages.
 
-If your browser refuses `localStorage` on `file://` — Safari does, some hardened
-Chrome policies do — your marks would not survive a reload. Use
-`python3 run.py --serve` in that case; the viewer then runs on
-`http://localhost:8765`.
+If a browser blocks `localStorage` for `file://` pages, marks cannot survive a
+reload. Use `python3 run.py --serve` (or `py run.py --serve`) to open the viewer
+through `http://localhost:8765` instead.
 
-## Using the viewer
+## Use the viewer
 
-| action | effect |
+![List view filtered to all four highlight categories](media/list_view.png)
+
+| interaction | result |
 | --- | --- |
-| hover an event | popup with topic, format, duration, speakers and the full abstract |
-| click an event | mark / unmark it (stored in `localStorage`, key `ese2026.marks`) |
-| category chips | dim everything else; with *nur Treffer* the rest is hidden |
-| search field | full text over title, subtitle, abstract, speakers and rooms |
-| *Markierte …* | export the selection as Markdown, JSON or iCal, or import a JSON export back |
-| Kalender / Liste | calendar grid per day, or a flat list (search and *nur markierte* switch to all days) |
-| Esc | close the popup |
+| hover an event | show topic, format, speakers, duration, and the full abstract |
+| click an event | mark or unmark it in browser-local storage |
+| category chips | dim non-matches; *nur Treffer* hides them |
+| *schwache Treffer* | include matches below the strong-score threshold |
+| search and topic filter | search all event text or restrict the programme topic |
+| *nur markierte* | show only the personal selection |
+| *Markierte …* | export Markdown, JSON, or iCal; import marks from JSON |
+| Kalender / Liste | switch between the room grid and flat chronological list |
+| Esc | close the detail popup |
 
-The selected day, the filters and the marks survive a reload. The marks live in
-your browser only — nothing is uploaded anywhere.
+The selected day, filters, view, and marks survive reloads. Everything stays in
+the browser; the viewer uploads nothing.
 
 ## How it works
 
+```text
+run.py               bootstrap: venv -> dependencies -> crawl -> build -> browser
+crawler/crawl.py     ese-kongress.de -> data/raw/*.html
+crawler/parse.py     data/raw/ -> data/congress.json + web/data.js
+crawler/classify.py  weighted rules for the four highlight categories
+web/                 dependency-free HTML/CSS/JavaScript viewer
 ```
-run.py               bootstrap: venv -> deps -> crawl -> build -> browser
-crawler/crawl.py     ese-kongress.de  ->  data/raw/*.html   (verbatim copy)
-crawler/parse.py     data/raw/        ->  data/congress.json + web/data.js
-crawler/classify.py  keyword rules for the four highlight categories
-web/                 the viewer: index.html + style.css + app.js
-```
 
-The schedule is a server-rendered Converia 9.4 frontend, so plain HTTP requests
-are enough — no browser automation:
+The schedule is a server-rendered Converia frontend, so ordinary HTTP requests
+are sufficient. Timetable pages provide rooms, times, and event links; session
+and general-event pages provide details and abstracts. The site already sends
+the abstract markup and merely hides it with CSS. `--start-day` defaults to
+`6480` (Monday, 30 November 2026), after which the site's own day switcher
+provides the remaining day identifiers.
 
-| page | URL | contains |
+Typical result: 6 days, 133 events, 116 contributions with abstracts, and 31
+topics. `crawler/classify.py` scores distinct keyword matches by field: topic 4,
+title 3, subtitle 2, and abstract 1. A score of 3 is strong; lower scores remain
+available as weak matches. The popup always shows which fields and keywords
+caused a highlight. Run `make report` to audit every match.
+
+Abstract HTML is sanitised before display: active elements, `on*` handlers, and
+`javascript:` URLs are removed.
+
+## Continuous integration
+
+The [quality workflow](.github/workflows/ci.yml) runs the same
+`python localPipeline.py` command as `make check`, so local checks and CI cannot
+drift. Its offline gate performs these checks:
+
+1. byte-compile all Python sources;
+2. run the unit tests against synthetic Converia-shaped fixtures;
+3. build and reload both output formats end to end;
+4. parse `web/app.js` with Node when Node is available.
+
+The gate covers Python 3.10 through 3.14 on Ubuntu and Python 3.14 on Windows
+and macOS. Separate Linux and Windows jobs prove the one-command bootstrap.
+Pushes and pull requests never contact the congress site; only the scheduled or
+manually started weekly canary makes one live request to detect markup changes.
+Locally, `python localPipeline.py --browser` adds a headless Chromium render and
+`--network` adds that same live canary.
+
+The [release workflow](.github/workflows/release.yml) runs the quality gate
+again for an existing `vMAJOR.MINOR.PATCH` tag. It then creates a clean source
+ZIP from tracked files, generates `SHA256SUMS.txt`, and publishes both in an
+idempotent GitHub Release with generated notes. It can be triggered by pushing
+the tag or manually for an existing tag; it never packages downloaded congress
+content or generated viewer data.
+
+## Dependencies
+
+| dependency | exact requirement | enforcement |
 | --- | --- | --- |
-| timetable | `v=TimeTable&do=0&day=<id>` | the calendar grid of one day: rooms, times, links to every event |
-| session | `v=List&do=15&day=<id>&ses=<id>` | one session with all contributions **including the full abstract** |
-| general event | `v=List&do=16&day=<id>&ev=<id>` | breaks, exhibition slots, get-together |
+| Python | 3.10 or newer | `run.MIN_PYTHON`, unit test, CI version matrix, badge |
+| beautifulsoup4 | 4.15.0 | exact `requirements.txt` pin and pin-format unit test |
+| requests | 2.34.2 | exact `requirements.txt` pin and pin-format unit test |
+| Node | optional | CI/local JavaScript syntax check only; not needed to run the viewer |
+| Chromium | optional | used only by `localPipeline.py --browser` |
 
-The *Details anzeigen* button on the site only toggles a CSS class; the abstract
-is already in the delivered markup. That is why fetching the page reproduces
-what a click would show. Only the day id to start from is passed in
-(`--start-day`, default `6480` = Monday 30.11.2026) — the site's own day
-switcher supplies the rest.
-
-Typical result: 6 days, 133 events, 116 contributions, all with an abstract, 31
-topics.
-
-## Highlighting
-
-`crawler/classify.py` scores every event with regex keyword rules over its
-topic, title, subtitle and abstracts. Hits are weighted by where they appear —
-topic 4, title 3, subtitle 2, abstract 1, counted per distinct keyword — and a
-category sticks at a score of 3 or more. Below that it is kept as a *weak*
-match, shown only when *schwache Treffer* is ticked.
-
-| category | badge | events (strong / weak) |
-| --- | --- | --- |
-| `project-management` | Projekt | 6 / 35 |
-| `team-management` | Team | 8 / 26 |
-| `agentic-ai` | Agentic AI | 25 / 5 |
-| `scaling` | Skalierung | 2 / 18 |
-
-The viewer never highlights without saying why: the popup lists the matched
-keywords per field. Tune the rules in `RULES` and run `make report` — it prints
-every tagged event with its score.
-
-The low `scaling` number is real, not a broken rule: nearly every other
-"skalier…" in this programme is technical scalability mentioned in passing,
-which lands in the weak bucket.
-
-## Notes
-
-* Abstracts are inserted into the popup as HTML and sanitised first
-  (`script`/`style`/`iframe` elements, `on*` handlers and `javascript:` URLs are
-  removed).
-* The programme content belongs to the congress organisers. This tool downloads
-  it for personal reading and planning; nothing of it is redistributed here,
-  which is why `data/` is git-ignored.
+The generated `data/` directory and `web/data.js` are intentionally ignored.
+Programme content belongs to the congress organisers and is downloaded only
+for personal reading and planning; no scraped congress text is redistributed
+in this repository. Test fixtures copy only the relevant HTML structure and use
+invented content.
 
 ## License
 
 GPL-3.0-or-later — see [LICENSE](LICENSE).
 
 Copyright (C) 2026 Marcel Petrick <mail@marcelpetrick.it>
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version. It is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
